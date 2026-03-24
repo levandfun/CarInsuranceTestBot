@@ -153,10 +153,24 @@ public class StateHandlerService : IStateHandlerService
         // Check if message contains a photo
         if (message.Photo == null || message.Photo.Length == 0)
         {
-            await _bot.SendTextMessageAsync(
-                chatId,
-                "❌ Please send a *photo* of your passport.",
-                cancellationToken: ct);
+            if (!string.IsNullOrWhiteSpace(message.Text))
+            {
+                await _bot.SendChatActionAsync(chatId, ChatAction.Typing, cancellationToken: ct);
+
+                var systemContext =
+                    "You are a polite car insurance assistant. The user is currently supposed to upload a photo of their PASSPORT, " +
+                    "but they sent a text message instead. Answer their question briefly and professionally. " +
+                    "Explain that the passport photo is required to securely verify their identity for the insurance policy. " +
+                    "End your message by gently reminding them to upload the photo to proceed.";
+
+                var reply = await _openAiChatService.GenerateConversationalReplyAsync(systemContext, message.Text, ct);
+
+                await _bot.SendTextMessageAsync(chatId, reply, cancellationToken: ct);
+            }
+            else
+            {
+                await _bot.SendTextMessageAsync(chatId, "❌ Please send a clear photo of your passport.", cancellationToken: ct);
+            }
             return;
         }
 
@@ -223,10 +237,24 @@ public class StateHandlerService : IStateHandlerService
         // Check if message contains a photo
         if (message.Photo == null || message.Photo.Length == 0)
         {
-            await _bot.SendTextMessageAsync(
-                chatId,
-                "❌ Please send a *photo* of your vehicle.",
-                cancellationToken: ct);
+            if (!string.IsNullOrWhiteSpace(message.Text))
+            {
+                await _bot.SendChatActionAsync(chatId, ChatAction.Typing, cancellationToken: ct);
+
+                var systemContext =
+                    "You are a polite car insurance assistant. The user is currently supposed to upload a photo of their VEHICLE REGISTRATION or VEHICLE, " +
+                    "but they sent a text message instead. Answer their question briefly and professionally. " +
+                    "Explain that the vehicle document is required to extract the VIN and vehicle details for the insurance quote. " +
+                    "End your message by gently reminding them to upload the photo to proceed.";
+
+                var reply = await _openAiChatService.GenerateConversationalReplyAsync(systemContext, message.Text, ct);
+
+                await _bot.SendTextMessageAsync(chatId, reply, cancellationToken: ct);
+            }
+            else
+            {
+                await _bot.SendTextMessageAsync(chatId, "❌ Please send a clear photo of your vehicle documents.", cancellationToken: ct);
+            }
             return;
         }
 
@@ -352,10 +380,17 @@ public class StateHandlerService : IStateHandlerService
         }
         else
         {
-            await _bot.SendTextMessageAsync(
-                chatId,
-                "❓ Please reply with *Yes* (data is correct) or *No* (retry).",
-                cancellationToken: ct);
+            await _bot.SendChatActionAsync(chatId, ChatAction.Typing, cancellationToken: ct);
+
+            var systemContext =
+                "You are a polite car insurance assistant. The user is currently reviewing the extracted data from their documents. " +
+                "They are supposed to reply 'Yes' (if data is correct) or 'No' (to retry), but they asked a question or sent a different text. " +
+                "Answer their question briefly and professionally. " +
+                "End your message by gently reminding them to reply with 'Yes' or 'No' so we can proceed to the price quote.";
+
+            var reply = await _openAiChatService.GenerateConversationalReplyAsync(systemContext, message.Text, ct);
+
+            await _bot.SendTextMessageAsync(chatId, reply, cancellationToken: ct);
         }
     }
 
@@ -434,10 +469,18 @@ public class StateHandlerService : IStateHandlerService
         }
         else
         {
-            await _bot.SendTextMessageAsync(
-                chatId,
-                "❓ Please reply with *Accept* (to confirm) or *Decline* (to reject).",
-                cancellationToken: ct);
+            await _bot.SendChatActionAsync(chatId, ChatAction.Typing, cancellationToken: ct);
+
+            var systemContext =
+                "You are a polite car insurance assistant. We just offered the user a fixed price of $100 USD for a comprehensive car insurance policy " +
+                "(which includes Collision, Liability, Theft, and Roadside assistance). " +
+                "They need to reply 'Accept' or 'Decline', but they asked a question instead (e.g., about the price, coverage, or terms). " +
+                "Answer their question briefly, confidently, and professionally based on the $100 coverage plan. " +
+                "End your message by gently reminding them to reply with 'Accept' or 'Decline' to finalize the process.";
+
+            var reply = await _openAiChatService.GenerateConversationalReplyAsync(systemContext, message.Text, ct);
+
+            await _bot.SendTextMessageAsync(chatId, reply, cancellationToken: ct);
         }
     }
 
